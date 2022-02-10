@@ -38,8 +38,9 @@ class AppTest {
         RequestObject requestObject = new RequestObject();
         requestObject.managerName= "PrimeCalculationManager";
         requestObject.method="findPrimes";
-        String[] methodParams = {"10", "1000000","200","50000"};
-        for (int i = 0; i < 5; i++) {
+//        String[] methodParams = {"10", "1000000","200","50000"};
+        String[] methodParams = {"10", "1000","200","50000"};
+        for (int i = 0; i < 4; i++) {
             requestObject.args = new HashMap<>();
             requestObject.args.put("n", methodParams[i]);
             // opening new socket for every request here. we can also send multiple requests with one socket.
@@ -60,7 +61,10 @@ class AppTest {
     void cleanup() throws IOException, InterruptedException {
         Socket socket = new Socket(host.getHostName(), PORT);
         ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
-        objectOutputStream.writeObject("EXIT");
+        RequestObject requestObject = new RequestObject();
+        requestObject.managerName= "PrimeCalculationManager";
+        requestObject.method="EXIT";
+        objectOutputStream.writeObject(requestObject);
         Thread.sleep(100);
         objectOutputStream.close();
         socket.close();

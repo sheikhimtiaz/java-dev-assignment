@@ -27,13 +27,14 @@ public class App {
             RequestObject requestObject = (RequestObject) objectInputStream.readObject();
             System.out.println("Message from client: " + requestObject);
 
+            if (requestObject.method.equalsIgnoreCase(EXIT))
+                break;
+
 
             ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
             objectOutputStream.writeObject("Hi client : " + requestObject);
             objectInputStream.close();
             objectOutputStream.close();
-            if (requestObject.method.equalsIgnoreCase(EXIT))
-                break;
         }
         System.out.println("Shutting down socket server");
         server.close();
