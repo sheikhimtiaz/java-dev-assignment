@@ -8,6 +8,9 @@ import socket.server.io.RequestObject;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -23,6 +26,7 @@ public class App {
             System.out.println("Waiting for the client request");
             Socket socket = server.accept();
             ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
+            ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
 //            String message = (String) objectInputStream.readObject();
             RequestObject requestObject = (RequestObject) objectInputStream.readObject();
             System.out.println("Message from client: " + requestObject);
@@ -30,14 +34,40 @@ public class App {
             if (requestObject.method.equalsIgnoreCase(EXIT))
                 break;
 
+            int result = -1;
+            try {
+                result = invokeMethodWithManagerName(requestObject);
+                objectOutputStream.writeObject("Hi client : " + result);
+            } catch (NoSuchMethodException e) {
+                objectOutputStream.writeObject("Hi client : " + "No Such Method Exception");
+                e.printStackTrace();
+            } catch (InvocationTargetException e) {
+                objectOutputStream.writeObject("Hi client : " + "Invocation Target Exception");
+                e.printStackTrace();
+            } catch (InstantiationException e) {
+                objectOutputStream.writeObject("Hi client : " + "Instantiation Exception");
+                e.printStackTrace();
+            } catch (IllegalAccessException e) {
+                objectOutputStream.writeObject("Hi client : " + "Illegal Access Exception");
+                e.printStackTrace();
+            }
 
-            ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
-            objectOutputStream.writeObject("Hi client : " + requestObject);
             objectInputStream.close();
             objectOutputStream.close();
         }
         System.out.println("Shutting down socket server");
         server.close();
+    }
+
+
+    private int invokeMethodWithManagerName(RequestObject requestObject) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+        Class<?> c = Class.forName("socket.server.manager."+requestObject.managerName);
+        Constructor<?> cons = c.getConstructor();
+        Object object = cons.newInstance();
+
+        Method method = object.getClass().getMethod(requestObject.method, int.class);
+
+        return (int)method.invoke(object, Integer.parseInt((String)requestObject.args.get("n")));
     }
 
 
