@@ -3,6 +3,8 @@
  */
 package socket.server;
 
+import socket.server.io.RequestObject;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -21,15 +23,16 @@ public class App {
             System.out.println("Waiting for the client request");
             Socket socket = server.accept();
             ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
-            String message = (String) objectInputStream.readObject();
-            System.out.println("Message from client: " + message);
+//            String message = (String) objectInputStream.readObject();
+            RequestObject requestObject = (RequestObject) objectInputStream.readObject();
+            System.out.println("Message from client: " + requestObject);
 
 
             ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
-            objectOutputStream.writeObject("Hi client : " + message);
+            objectOutputStream.writeObject("Hi client : " + requestObject);
             objectInputStream.close();
             objectOutputStream.close();
-            if (message.equalsIgnoreCase(EXIT))
+            if (requestObject.method.equalsIgnoreCase(EXIT))
                 break;
         }
         System.out.println("Shutting down socket server");
