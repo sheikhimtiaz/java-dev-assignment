@@ -19,57 +19,25 @@ public class App {
     private static final String EXIT = "EXIT";
 
     public void startServerAndAcceptRequest() throws IOException, ClassNotFoundException {
-        ServerSocket server = new ServerSocket(PORT);
-        System.out.println("Starting socket server");
+        ServerSocket server = null;
+        try{
+            server = new ServerSocket(PORT);
+            System.out.println("Starting socket server");
 
-        while (true) {
-            System.out.println("Waiting for the client request");
-            Socket socket = server.accept();
-            ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
-            ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
-//            String message = (String) objectInputStream.readObject();
-            RequestObject requestObject = (RequestObject) objectInputStream.readObject();
-            System.out.println("Message from client: " + requestObject);
-
-            if (requestObject.method.equalsIgnoreCase(EXIT))
-                break;
-
-            int result = -1;
-            try {
-                result = invokeMethodWithManagerName(requestObject);
-                objectOutputStream.writeObject("Hi client : " + result);
-            } catch (NoSuchMethodException e) {
-                objectOutputStream.writeObject("Hi client : " + "No Such Method Exception");
-                e.printStackTrace();
-            } catch (InvocationTargetException e) {
-                objectOutputStream.writeObject("Hi client : " + "Invocation Target Exception");
-                e.printStackTrace();
-            } catch (InstantiationException e) {
-                objectOutputStream.writeObject("Hi client : " + "Instantiation Exception");
-                e.printStackTrace();
-            } catch (IllegalAccessException e) {
-                objectOutputStream.writeObject("Hi client : " + "Illegal Access Exception");
-                e.printStackTrace();
+            while (true) {
+                System.out.println("Waiting for the client request");
+                Socket socket = server.accept();
+                ClientHandler clientHandler = new ClientHandler(socket);
+                Thread thread = new Thread(clientHandler);
+                thread.start();
             }
-
-            objectInputStream.close();
-            objectOutputStream.close();
+        } catch (Exception e){
+            e.printStackTrace();
+        } finally {
+            System.out.println("Shutting down socket server");
+            if(server!=null) server.close();
         }
-        System.out.println("Shutting down socket server");
-        server.close();
     }
-
-
-    private int invokeMethodWithManagerName(RequestObject requestObject) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
-        Class<?> c = Class.forName("socket.server.manager."+requestObject.managerName);
-        Constructor<?> cons = c.getConstructor();
-        Object object = cons.newInstance();
-
-        Method method = object.getClass().getMethod(requestObject.method, int.class);
-
-        return (int)method.invoke(object, Integer.parseInt((String)requestObject.args.get("n")));
-    }
-
 
     public static void main(String[] args) throws IOException, ClassNotFoundException{
         new App().startServerAndAcceptRequest();

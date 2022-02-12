@@ -35,26 +35,26 @@ class AppTest {
 
     @Test
     void sendRequest() throws IOException, ClassNotFoundException, InterruptedException {
-        RequestObject requestObject = new RequestObject();
-        requestObject.managerName= "PrimeCalculationManager";
-        requestObject.method="findPrimes";
 //        String[] methodParams = {"10", "1000000","200","50000"};
         String[] methodParams = {"10", "1000","200","50000"};
+        // opening new socket for every request here. we can also send multiple requests with one socket.
+        Socket socket = new Socket(host.getHostName(), PORT);
+        ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
+        ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
         for (int i = 0; i < 4; i++) {
+            RequestObject requestObject = new RequestObject();
+            requestObject.managerName= "PrimeCalculationManager";
+            requestObject.method="findPrimes";
             requestObject.args = new HashMap<>();
             requestObject.args.put("n", methodParams[i]);
-            // opening new socket for every request here. we can also send multiple requests with one socket.
-            Socket socket = new Socket(host.getHostName(), PORT);
-            ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
             objectOutputStream.writeObject(requestObject);
-            ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
             String message = (String) objectInputStream.readObject();
             System.out.println("Message from server: " + message);
-            objectOutputStream.close();
-            objectInputStream.close();
-            socket.close();
-            Thread.sleep(100);
         }
+        objectOutputStream.close();
+        objectInputStream.close();
+        socket.close();
+        Thread.sleep(100);
     }
 
     @AfterEach
