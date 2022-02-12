@@ -28,6 +28,7 @@ public class ClientHandler implements Runnable{
         ObjectInputStream objectInputStream = null;
         ObjectOutputStream objectOutputStream = null;
         try{
+            ExecutorService executorService = Executors.newFixedThreadPool(10);
             objectInputStream = new ObjectInputStream(socket.getInputStream());
             objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
 //            String message = (String) objectInputStream.readObject();
@@ -41,9 +42,12 @@ public class ClientHandler implements Runnable{
                 if (requestObject == null || requestObject.method.equalsIgnoreCase(EXIT))
                     break;
 
+//                MethodHandler methodHandler = new MethodHandler(requestObject, objectOutputStream);
+//                Thread thread = new Thread(methodHandler);
+//                thread.start();
+
                 MethodHandler methodHandler = new MethodHandler(requestObject, objectOutputStream);
-                Thread thread = new Thread(methodHandler);
-                thread.start();
+                executorService.submit(methodHandler);
 
             }
 
