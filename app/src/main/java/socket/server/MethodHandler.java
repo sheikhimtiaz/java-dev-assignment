@@ -1,6 +1,7 @@
 package socket.server;
 
 import socket.server.io.RequestObject;
+import socket.server.service.InvokeService;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;
@@ -9,6 +10,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 public class MethodHandler implements Runnable{
+    private final InvokeService invokeService = new InvokeService();
     RequestObject requestObject;
     ObjectOutputStream objectOutputStream;
 
@@ -23,7 +25,7 @@ public class MethodHandler implements Runnable{
             int result = -1;
 
             System.out.println(Thread.currentThread().getName());
-            result = invokeMethodWithManagerName(requestObject);
+            result = invokeService.invokeMethodWithManagerName(requestObject);
             System.out.println("Result : " + result);
             objectOutputStream.writeObject("Hi client : " + result);
         } catch (ClassNotFoundException e) {
@@ -41,14 +43,4 @@ public class MethodHandler implements Runnable{
         }
     }
 
-
-    private int invokeMethodWithManagerName(RequestObject requestObject) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
-        Class<?> c = Class.forName("socket.server.manager."+requestObject.managerName);
-        Constructor<?> cons = c.getConstructor();
-        Object object = cons.newInstance();
-
-        Method method = object.getClass().getMethod(requestObject.method, int.class);
-
-        return (int)method.invoke(object, Integer.parseInt((String)requestObject.args.get("n")));
-    }
 }
