@@ -13,6 +13,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class App {
     private static final int PORT = 9876;
@@ -23,13 +25,17 @@ public class App {
         try{
             server = new ServerSocket(PORT);
             System.out.println("Starting socket server");
+            int availableProcessors = Runtime.getRuntime().availableProcessors();
+            ExecutorService executorServicePool = Executors.newFixedThreadPool(availableProcessors);
+            ExecutorService executorService = Executors.newFixedThreadPool(availableProcessors);
 
             while (true) {
                 System.out.println("Waiting for the client request");
                 Socket socket = server.accept();
-                ClientHandler clientHandler = new ClientHandler(socket);
-                Thread thread = new Thread(clientHandler);
-                thread.start();
+                ClientHandler clientHandler = new ClientHandler(socket, executorService);
+//                Thread thread = new Thread(clientHandler);
+//                thread.start();
+                executorServicePool.submit(clientHandler);
             }
         } catch (Exception e){
             e.printStackTrace();
