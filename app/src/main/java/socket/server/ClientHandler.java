@@ -15,11 +15,14 @@ import java.util.stream.Collectors;
 
 public class ClientHandler implements Runnable{
 
+    ExecutorService executorService;
     private final Socket socket;
     private static final String EXIT = "EXIT";
 
-    public ClientHandler(Socket inSocket){
+    public ClientHandler(Socket inSocket, ExecutorService executorService2){
+
         socket = inSocket;
+        executorService = executorService2;
     }
 
 
@@ -28,7 +31,6 @@ public class ClientHandler implements Runnable{
         ObjectInputStream objectInputStream = null;
         ObjectOutputStream objectOutputStream = null;
         try{
-            ExecutorService executorService = Executors.newFixedThreadPool(10);
             objectInputStream = new ObjectInputStream(socket.getInputStream());
             objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
 //            String message = (String) objectInputStream.readObject();
