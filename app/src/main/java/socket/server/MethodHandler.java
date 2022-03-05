@@ -5,9 +5,7 @@ import socket.server.service.InvokeService;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 
 public class MethodHandler implements Runnable{
     private final InvokeService invokeService = new InvokeService();
