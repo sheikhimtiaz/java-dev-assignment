@@ -51,6 +51,9 @@ class AppTest {
             String message = (String) objectInputStream.readObject();
             System.out.println("Message from server: " + message);
         }
+        RequestObject requestObject = new RequestObject();
+        requestObject.method="EXIT";
+        objectOutputStream.writeObject(requestObject);
         objectOutputStream.close();
         objectInputStream.close();
         socket.close();

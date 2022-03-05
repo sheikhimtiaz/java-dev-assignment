@@ -40,8 +40,10 @@ public class ClientHandler implements Runnable{
             while((requestObject = (RequestObject) objectInputStream.readObject())!=null){
                 System.out.println("Message from client: " + requestObject);
 
-                if (requestObject == null || requestObject.method.equalsIgnoreCase(EXIT))
-                    break;
+                if (requestObject == null || requestObject.method.equalsIgnoreCase(EXIT)){
+                    System.out.println("Closing the server.");
+                    return;
+                }
 
 //                MethodHandler methodHandler = new MethodHandler(requestObject, objectOutputStream);
 //                Thread thread = new Thread(methodHandler);
