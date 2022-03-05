@@ -13,7 +13,12 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 class AppTest {
     InetAddress host;
@@ -37,7 +42,7 @@ class AppTest {
     void sendRequest() throws IOException, ClassNotFoundException, InterruptedException {
 //        String[] methodParams = {"10", "1000000","200","50000"};
         String[] methodParams = {"10", "1000","200","50000"};
-        // opening new socket for every request here. we can also send multiple requests with one socket.
+        // opening one socket for every request here. we can also send multiple requests with one socket in multipleAsyncRequestFromSingleClient().
         Socket socket = new Socket(host.getHostName(), PORT);
         ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
         ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
@@ -48,6 +53,8 @@ class AppTest {
             requestObject.args = new HashMap<>();
             requestObject.args.put("n", methodParams[i]);
             objectOutputStream.writeObject(requestObject);
+        }
+        for(int i = 0; i < 4; i++){
             String message = (String) objectInputStream.readObject();
             System.out.println("Message from server: " + message);
         }
@@ -59,6 +66,87 @@ class AppTest {
         socket.close();
         Thread.sleep(100);
     }
+
+
+    @Test
+    void multipleAsyncRequestFromSingleClient() throws IOException, ClassNotFoundException, InterruptedException {
+        Socket socket = new Socket(host.getHostName(), PORT);
+        ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
+
+        RequestObject requestObject = new RequestObject();
+        requestObject.managerName= "PrimeCalculationManager";
+        requestObject.method="findPrimes";
+        requestObject.args = new HashMap<>();
+        requestObject.args.put("n", "1000000");
+        objectOutputStream.writeObject(requestObject);
+        ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
+
+        RequestObject requestObject2 = new RequestObject();
+        requestObject2.managerName= "PrimeCalculationManager";
+        requestObject2.method="findPrimes";
+        requestObject2.args = new HashMap<>();
+        requestObject2.args.put("n", "10");
+        objectOutputStream.writeObject(requestObject2);
+
+        String result1 = (String) objectInputStream.readObject();
+        String result2 = (String) objectInputStream.readObject();
+        System.out.println("First message from server: " + result1);
+        System.out.println("Second message from server: " + result2);
+        // output shows processing is happening async, not writing to outputobjectstreamm async
+        // note: outputobjectstream is not threadsafe
+
+        RequestObject requestObject3 = new RequestObject();
+        requestObject3.method="EXIT";
+        objectOutputStream.writeObject(requestObject3);
+
+        objectOutputStream.close();
+        objectInputStream.close();
+        socket.close();
+        Thread.sleep(100);
+    }
+
+
+    @Test
+    void multipleAsyncClientRequest() {
+        ExecutorService executorService = Executors.newFixedThreadPool(10);
+        Runnable runnable = () -> {
+            try {
+                Socket socket = new Socket(host.getHostName(), PORT);
+                ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
+                RequestObject requestObject = new RequestObject();
+                requestObject.managerName= "PrimeCalculationManager";
+                requestObject.method="findPrimes";
+                requestObject.args = new HashMap<>();
+                requestObject.args.put("n", "100");
+                objectOutputStream.writeObject(requestObject);
+                ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
+                String message = (String) objectInputStream.readObject();
+                System.out.println("Message from server: " + message);
+                RequestObject requestObject2 = new RequestObject();
+                requestObject2.method="EXIT";
+                objectOutputStream.writeObject(requestObject2);
+                objectOutputStream.close();
+                objectInputStream.close();
+                socket.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        };
+
+        List<Runnable> runnables = new ArrayList<>();
+        for (int i=0; i<4; i++) {
+            runnables.add(runnable);
+        }
+
+        CompletableFuture<?>[] futures = runnables.stream()
+                .map(task -> CompletableFuture.runAsync(task, executorService))
+                .toArray(CompletableFuture[]::new);
+
+        CompletableFuture.allOf(futures).join();
+
+        executorService.shutdown();
+    }
+
 
     @AfterEach
     void cleanup() throws IOException, InterruptedException {
