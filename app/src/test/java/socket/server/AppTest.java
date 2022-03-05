@@ -87,8 +87,8 @@ class AppTest {
         objectOutputStream.writeObject(requestObject2);
 
         String result1 = (String) objectInputStream.readObject();
-        String result2 = (String) objectInputStream.readObject();
         System.out.println("First message from server: " + result1);
+        String result2 = (String) objectInputStream.readObject();
         System.out.println("Second message from server: " + result2);
 
         RequestObject requestObject3 = new RequestObject();
