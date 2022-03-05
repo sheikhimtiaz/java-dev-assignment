@@ -26,16 +26,16 @@ public class App {
             server = new ServerSocket(PORT);
             System.out.println("Starting socket server");
             int availableProcessors = Runtime.getRuntime().availableProcessors();
-            ExecutorService executorServicePool = Executors.newFixedThreadPool(availableProcessors);
-            ExecutorService executorService = Executors.newFixedThreadPool(availableProcessors);
+            ExecutorService executorServiceIOBound = Executors.newFixedThreadPool(200);
+            ExecutorService executorServiceCPUBound = Executors.newFixedThreadPool(availableProcessors);
 
             while (true) {
                 System.out.println("Waiting for the client request");
                 Socket socket = server.accept();
-                ClientHandler clientHandler = new ClientHandler(socket, executorService);
+                ClientHandler clientHandler = new ClientHandler(socket, executorServiceCPUBound);
 //                Thread thread = new Thread(clientHandler);
 //                thread.start();
-                executorServicePool.submit(clientHandler);
+                executorServiceIOBound.submit(clientHandler);
             }
         } catch (Exception e){
             e.printStackTrace();

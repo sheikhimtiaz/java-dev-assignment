@@ -36,7 +36,6 @@ public class ClientHandler implements Runnable{
 //            String message = (String) objectInputStream.readObject();
             System.out.println(Thread.currentThread().getName());
             RequestObject requestObject;
-            ExecutorService executor = Executors.newFixedThreadPool( 10);
 
             while((requestObject = (RequestObject) objectInputStream.readObject())!=null){
                 System.out.println("Message from client: " + requestObject);
