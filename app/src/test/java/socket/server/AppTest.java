@@ -66,30 +66,26 @@ class AppTest {
 
 
     @Test
-    void multipleAsyncRequestFromSingleClient() throws IOException, ClassNotFoundException, InterruptedException {
-        // opening one socket for every request here
+    void sendMultipleAsyncRequestFromSingleClient() throws IOException, ClassNotFoundException, InterruptedException {
+        // using one socket for every request here
         Socket socket = new Socket(host.getHostName(), PORT);
         ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
-
-        RequestObject requestObject = new RequestObject();
-        requestObject.managerName= "PrimeCalculationManager";
-        requestObject.method="findPrimes";
-        requestObject.args = new HashMap<>();
-        requestObject.args.put("n", "1000000");
-        objectOutputStream.writeObject(requestObject);
         ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
 
-        RequestObject requestObject2 = new RequestObject();
-        requestObject2.managerName= "PrimeCalculationManager";
-        requestObject2.method="findPrimes";
-        requestObject2.args = new HashMap<>();
-        requestObject2.args.put("n", "10");
-        objectOutputStream.writeObject(requestObject2);
+        String[] methodParams = {"10", "100000", "200", "50000"};
+        for(int i=0; i<4; i++){
+            RequestObject requestObject = new RequestObject();
+            requestObject.managerName= "PrimeCalculationManager";
+            requestObject.method="findPrimes";
+            requestObject.args = new HashMap<>();
+            requestObject.args.put("n", methodParams[i]);
+            objectOutputStream.writeObject(requestObject);
+        }
 
-        String result1 = (String) objectInputStream.readObject();
-        System.out.println("First message from server: " + result1);
-        String result2 = (String) objectInputStream.readObject();
-        System.out.println("Second message from server: " + result2);
+        for(int i=0; i<4; i++){
+            String result = (String) objectInputStream.readObject();
+            System.out.println("Message from server: " + result);
+        }
 
         RequestObject requestObject3 = new RequestObject();
         requestObject3.method="EXIT";
@@ -103,7 +99,7 @@ class AppTest {
 
 
     @Test
-    void multipleAsyncClientRequest() {
+    void sendMultipleAsyncClientRequest() {
         // opening multiple socket here.
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         Runnable runnable = () -> {

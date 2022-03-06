@@ -24,8 +24,8 @@ public class MethodHandler implements Runnable{
 
             System.out.println(Thread.currentThread().getName());
             result = invokeService.invokeMethodWithManagerName(requestObject);
-            System.out.println("Result : " + result);
-            objectOutputStream.writeObject("Hi client : " + result);
+//            System.out.println("Result : " + result);
+            objectOutputStream.writeObject("Hi client : " + result + " / / n = " + requestObject.args.get("n"));
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         } catch (InvocationTargetException e) {

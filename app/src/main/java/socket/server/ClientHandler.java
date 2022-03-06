@@ -34,7 +34,6 @@ public class ClientHandler implements Runnable{
                 System.out.println("Message from client: " + requestObject);
 
                 if (requestObject == null || requestObject.method.equalsIgnoreCase(EXIT)){
-                    System.out.println("Closing the server.");
                     return;
                 }
 
